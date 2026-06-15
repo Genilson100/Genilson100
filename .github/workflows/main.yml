@@ -11,19 +11,26 @@ jobs:
       - name: Configurar o Node.js
         uses: actions/setup-node@v4
         with:
-          node-size: 20
+          node-version: 20
 
       - name: Criar pasta www exigida pelo app
         run: |
-          mkdir www
+          mkdir -p www
           cp index.html www/index.html
 
-      - name: Instalar o Capacitor e Criar o App Android
+      - name: Instalar dependencias e Capacitor
         run: |
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android
+
+      - name: Inicializar Projeto Capacitor
+        run: |
           npx cap init "Meu Planner" "com.genilson.meuplanner" --web-dir=www
+
+      - name: Criar e estruturar pasta Android nativa
+        run: |
           npx cap add android
+          npx cap @capacitor/cli create android
           npx cap sync
 
       - name: Configurar o Java
@@ -35,6 +42,7 @@ jobs:
       - name: Compilar o arquivo APK final
         run: |
           cd android
+          chmod +x gradlew
           ./gradlew assembleDebug
 
       - name: Disponibilizar o arquivo para Download
