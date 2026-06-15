@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Planner Premium</title>
+    <style>
+        :root {
+            --bg-color: #fff5f7;
+            --card-bg: #ffffff;
+            --text-main: #4a3538;
+            --text-muted: #8a7679;
+            --accent-color: #ff7597; /* Rosa Moderno */
+            --accent-hover: #e05376;
+            --accent-light: #ffeef2;
+            --border-color: #f7d6dc;
+            --success: #ffccd7;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .planner-container {
+            width: 100%;
+            max-width: 1200px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(255, 117, 151, 0.1);
+            padding: 30px;
+            position: relative;
+        }
+
+        /* Status de Salvamento */
+        .save-status {
+            position: absolute;
+            top: 15px;
+            right: 30px;
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .save-status.show {
+            opacity: 1;
+        }
+
+        /* Cabeçalho */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px dashed var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+            margin-top: 10px;
+        }
+
+        header h1 {
+            font-size: 32px;
+            color: var(--text-main);
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        header h1 span {
+            color: var(--accent-color);
+            font-style: italic;
+        }
+
+        .meta-info {
+            display: flex;
+            gap: 15px;
+        }
+
+        .meta-info input {
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            outline: none;
+            font-size: 14px;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            transition: all 0.2s;
+        }
+
+        .meta-info input:focus {
+            border-color: var(--accent-color);
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(255, 117, 151, 0.15);
+        }
+
+        /* Layout Grid Principal */
+        .planner-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 25px;
+        }
+
+        @media (max-width: 768px) {
+            .planner-grid {
+                grid-template-columns: 1fr;
+            }
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            .meta-info {
+                width: 100%;
+                flex-direction: column;
+            }
+        }
+
+        /* Coluna Esquerda */
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .section-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .section-card:hover {
+            box-shadow: 0 6px 15px rgba(255, 117, 151, 0.05);
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 15px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::before {
+            content: '🌸';
+            font-size: 14px;
+        }
+
+        /* Inputs de Texto */
+        .save-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            resize: none;
+            color: var(--text-main);
+            transition: all 0.2s;
+        }
+
+        .save-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(255, 117, 151, 0.15);
+        }
+
+        /* Hábitos */
+        .habit-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .habit-row:last-child {
+            border-bottom: none;
+        }
+
+        .habit-days {
+            display: flex;
+            gap: 6px;
+        }
+
+        .day-checkbox {
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            background-color: var(--bg-color);
+            transition: all 0.2s;
+        }
+
+        .day-checkbox::after {
+            content: attr(data-day);
+            color: var(--text-muted);
+        }
+
+        .day-checkbox:checked {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .day-checkbox:checked::after {
+            color: white;
+        }
+
+        /* Cronograma Diário */
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .schedule-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .schedule-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .time-slot {
+            width: 55px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .schedule-row input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            background-color: #fff;
+            transition: all 0.2s;
+        }
+
+        .schedule-row input:focus {
+            background-color: var(--accent-light);
+            border-color: var(--accent-color);
+        }
+
+        /* Rodapé Grid */
+        .bottom-grid {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .bottom-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Botões */
+        .print-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .print-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        /* Estilos de Impressão */
+        @media print {
+            body { background-color: white; padding: 0; }
+            .planner-container { box-shadow: none; padding: 0; max-width: 100%; }
+            .print-btn, .save-status { display: none; }
+            .save-input, .schedule-row input, .meta-info input {
+                border: none;
+                border-bottom: 1px dashed var(--accent-color);
+                border-radius: 0;
+                padding: 5px;
+                background: transparent;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="planner-container">
+        <!-- Status de salvamento automático -->
+        <div class="save-status" id="saveStatus">✨ Salvo automaticamente</div>
+
+        <!-- Cabeçalho -->
+        <header>
+            <h1>Meu <span>Planner</span></h1>
+            <div class="meta-info">
+                <input type="text" id="planner-date" class="save-input" placeholder="Data de Hoje">
+                <input type="text" id="planner-weekly" class="save-input" placeholder="Meta Principal da Semana">
+                <button class="print-btn" onclick="window.print()">Imprimir / PDF</button>
+            </div>
+        </header>
+
+        <!-- Grid Principal -->
+        <div class="planner-grid">
+            
+            <!-- Coluna Esquerda -->
+            <div class="left-column">
+                <!-- Foco Principal -->
+                <div class="section-card">
+                    <div class="section-title">Foco do Dia</div>
+                    <textarea id="focus-text" class="save-input" rows="3" placeholder="Quais são as prioridades absolutas para hoje?"></textarea>
+                </div>
+
+                <!-- Rastreador de Hábitos -->
+                <div class="section-card">
+                    <div class="section-title">Meus Hábitos</div>
+                    
+                    <div class="habit-row">
+                        <span>Beber Água 💧</span>
+                        <div class="habit-days">
+                            <input type="checkbox" id="habit1-seg" class="day-checkbox" data-day="S">
+                            <input type="checkbox" id="habit1-ter" class="day-checkbox" data-day="T">
+                            <input type="checkbox" id="habit1-qua" class="day-checkbox" data-day="Q">
+                            <input type="checkbox" id="habit1-qui" class="day-checkbox" data-day="Q">
+                            <input type="checkbox" id="habit1-sex" class="day-checkbox" data-day="S">
+                        </div>
+                    </div>
+
+                    <div class="habit-row">
+                        <span>Skincare 🧖‍♀️</span>
+                        <div class="habit-days">
+                            <input type="checkbox" id="habit2-seg" class="day-checkbox" data-day="S">
+                            <input type="checkbox" id="habit2-ter" class="day-checkbox" data-day="T">
+                            <input type="checkbox" id="habit2-qua" class="day-checkbox" data-day="Q">
+                            <input type="checkbox" id="habit2-qui" class="day-checkbox" data-day="Q">
+                            <input type="checkbox" id="habit2-sex" class="day-checkbox" data-day="S">
+                        </div>
+                    </div>
+
+                    <div class="habit-row">
+                        <span>Leitura / Estudo 📚</span>
+                        <div class="habit-days">
+                            <input type="checkbox" id="habit3-seg" class="day-checkbox" data-day="S">
+                            <input type="checkbox" id="habit3-ter" class="day-checkbox" data-day="T">
+                            <input type="checkbox" id="habit3-qua" class="day-checkbox" data-day="Q">
+                            <input type="checkbox" id="habit3-qui" class="day-checkbox" data-day="Q">
+                            <input type="checkbox" id="habit3-sex" class="day-checkbox" data-day="S">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lembretes -->
+                <div class="section-card">
+                    <div class="section-title">Lembretes & Listas</div>
+                    <textarea id="reminders-text" class="save-input" rows="4" placeholder="Anote ligações, compras ou pequenas tarefas..."></textarea>
+                </div>
+            </div>
+
+            <!-- Coluna Direita (Cronograma) -->
+            <div class="right-column">
+                <div class="section-card">
+                    <div class="section-title">Minha Rotina Diária</div>
+                    <div class="schedule-grid">
+                        <div class="schedule-row"><span class="time-slot">08:00</span><input type="text" id="time-08" class="save-input"></div>
+                        <div class="schedule-row"><span class="time-slot">09:00</span><input type="text" id="time-09" class="save-input"></div>
+                        <div class="schedule-row"><span class="time-slot">10:00</span><input type="text" id="time-10" class="save-input"></div>
+                        <div class="schedule-row"><span class="time-slot">11:00</span><input type="text" id="time-11" class="save-input"></div>
+                        <div class="schedule-row"><span class="time-slot">12:00</span><input type="text" id="time-12" class="save-input" placeholder="Almoço / Descanso ✨"></div>
+                        <div class="schedule-row"><span class="time-slot">14:00</span><input type="text" id="time-14" class="save-input"></div>
+                        <div class="schedule-row"><span class="time-slot">15:00</span><input type="text" id="time-15" class="save-input"></div>
+                        <div class="schedule-row"><span class="time-slot">16:00</span><input type="text" id="time-16" class="save-input"></div>
+                        <div class="schedule-row"><span class="time-slot">17:00</span><input type="text" id="time-17" class="save-input"></div>
+                        <div class="schedule-row"><span class="time-slot">18:00</span><input type="text" id="time-18" class="save-input"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rodapé -->
+            <div class="bottom-grid">
+                <div class="section-card">
+                    <div class="section-title">Momentos de Gratidão 💕</div>
+                    <textarea id="gratitude-text" class="save-input" rows="3" placeholder="Três coisas boas que aconteceram hoje..."></textarea>
+                </div>
+                <div class="section-card">
+                    <div class="section-title">Insights & Pensamentos 💭</div>
+                    <textarea id="insights-text" class="save-input" rows="3" placeholder="Ideias, desabafos ou reflexões..."></textarea>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- JavaScript para Salvamento Automático -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputs = document.querySelectorAll('.save-input');
+            const checkboxes = document.querySelectorAll('.day-checkbox');
+            const saveStatus = document.getElementById('saveStatus');
+
+            // Função para mostrar aviso visual de que salvou
+            function triggerSaveAnimation() {
+                saveStatus.classList.add('show');
+                setTimeout(() => {
+                    saveStatus.classList.remove('show');
+                }, 1500);
+            }
+
+            // 1. Carregar dados salvos anteriormente
+            inputs.forEach(input => {
+                const savedValue = localStorage.getItem(input.id);
+                if (savedValue) {
+                    input.value = savedValue;
+                }
+            });
+
+            checkboxes.forEach(cb => {
+                const savedValue = localStorage.getItem(cb.id);
+                if (savedValue === 'true') {
+                    cb.checked = true;
+                }
+            });
+
+            // 2. Escutar mudanças e salvar dinamicamente
+            inputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    localStorage.setItem(input.id, input.value);
+                    triggerSaveAnimation();
+                });
+            });
+
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', () => {
+                    localStorage.setItem(cb.id, cb.checked);
+                    triggerSaveAnimation();
+                });
+            });
+        });
+    </script>
+</body>
+</html>
